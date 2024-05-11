@@ -43,7 +43,7 @@ class Predictor(object):
             if self.model_name == 'rnn':
                 out_list, _, other = self.model(src_id_seq, [len(src_seq)])
             elif self.model_name == 'transformer':
-                out_list = self.model(src_id_seq)
+                out_list = self.model(src_id_seq, content)
             elif self.model_name == 'cnn':
                 out_list, _ = self.model(src_id_seq)
 
