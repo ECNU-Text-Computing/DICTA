@@ -34,27 +34,12 @@ class Transformer(nn.Module):
         in_len = src.size(1)
         out_len = tgt.size(1) if tgt is not None else self.out_len
         seq_len = in_len + out_len
-        if use_sbert_seq:
+        if content is not None:
             content = self.sbert_model.encode(content)  # [batch_size, embed_dim=384]
             content = torch.from_numpy(content).to(self.device)  # [batch_size, 384]
-            # encoded_input = self.tokenizer(content, return_tensors='pt', padding=True)  # [batch_size, embed_dim=768]
-            # encoded_input = encoded_input.to(self.device)
-            # max_len = encoded_input['input_ids'].size(1)
-            # if max_len > 512:
-            #     input_ids = encoded_input['input_ids'][:, :512]
-            #     token_type_ids = encoded_input['token_type_ids'][:, :512]
-            #     attention_mask = encoded_input['attention_mask'][:, :512]
-            #     content = self.smodel(input_ids, token_type_ids, attention_mask)[1]
-            # else:
-            #     content = self.smodel(**encoded_input)[1]
+        if use_sbert_seq:
             content = content.unsqueeze(1).repeat(1, seq_len, 1)  # [batch_size, seq_len, 384]
             content, _ = self.sbert_seq_model(content)  # [batch_size, seq_len, 384]
-        elif use_sbert:
-            content = self.sbert_model.encode(content)  # [batch_size, embed_dim=384]
-            # encoded = self.tokenizer(content, return_tensors='pt', padding=True)  # [batch_size, embed_dim=768]
-            # encoded = encoded.to(self.device)
-            # _, content = self.smodel(**encoded)
-            content = torch.from_numpy(content).to(self.device)  # [batch_size, embed_dim=384]
 
         src = src.unsqueeze(2).permute(1, 0, 2)
         if isinstance(tgt, list):
