@@ -16,7 +16,7 @@ Original dataset:
 * PMC (pubmed): https://www.ncbi.nlm.nih.gov/pmc/tools/openftlist/
 * DBLPv13 (dblp): https://www.aminer.org/citation
 
-* Download the dealt dataset from https://drive.google.com/file/d/1VOSjqvnKu04MAnA6dVrhpdzm9WH4msKS/view?usp=sharing
+Download the dealt dataset from https://drive.google.com/file/d/1VOSjqvnKu04MAnA6dVrhpdzm9WH4msKS/view?usp=sharing
 
 
 ### Running
