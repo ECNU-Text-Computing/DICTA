@@ -80,8 +80,8 @@ kernel_size = 3
 use_adamw = False
 bidirectional = False
 use_attention = True
-use_sbert = False
-use_sbert_seq = False
+use_sbert = True
+use_sbert_seq = True
 if not use_sbert:
     use_sbert_seq = False
 sbert_model = SentenceTransformer('all-MiniLM-L6-v2')
