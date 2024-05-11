@@ -6,7 +6,7 @@ DICTA: DynamIc Content-aware TrAnsformer
 
 * pytorch >= 1.10.2
 * numpy >= 1.13.3
-* sklearn
+* sentence_transformers
 * python 3.9
 * transformers
 
