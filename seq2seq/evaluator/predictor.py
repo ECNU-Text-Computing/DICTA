@@ -5,6 +5,7 @@ import math
 
 import seq2seq
 from seq2seq.loss import Perplexity
+from sentence_transformers import SentenceTransformer
 
 
 class Predictor(object):
@@ -30,12 +31,17 @@ class Predictor(object):
         # self.tgt_vocab = tgt_vocab
 
     def get_decoder_features(self, src_seq):
+        # print(src_seq[-1].isdigit())
         if src_seq[-1].isdigit():
-            content = "There is no content for this paper."
+            content = "There is no abstract for this paper."
         else:
             content = src_seq.pop()
-        src_id_seq = torch.FloatTensor([[np.log(1+float(i)) for i in src_seq]]).view(1, -1)
+
+        src_id_seq = torch.FloatTensor([[np.log(1 + float(i)) for i in src_seq]]).view(1, -1)
         # print('input_list:', src_id_seq)
+        # print(content)
+        # content = self.smodel.encode(content)
+        # content = torch.from_numpy(content).to(self.device)
         src_id_seq = src_id_seq.to(self.device)
         # print("src_seq:{}, src_id_seq:{}, len(src_seq):{}".format(src_seq, src_id_seq, len(src_seq)))
 
@@ -95,7 +101,8 @@ class Predictor(object):
 
                 if self.model_name == 'rnn':
                     # RNN-based seq2seq model
-                    decoder_outputs, decoder_hidden, other = self.model(input_variables, content, input_lengths.tolist())
+                    decoder_outputs, decoder_hidden, other = self.model(input_variables, content,
+                                                                        input_lengths.tolist())
 
                 elif self.model_name == 'transformer':
                     # Transformer model
@@ -118,11 +125,11 @@ class Predictor(object):
 
     def predict1(self, src_seq):
         out_list = self.get_decoder_features(src_seq)
-        
+
         tgt_tensor = torch.stack(out_list, dim=1)
         tgt_list = tgt_tensor[0].cpu().numpy().tolist()
-        print('tgt_list:', tgt_list)
-        tgt_seq = " ".join([str(round(math.exp(i[0]) - 1, 1)) for i in tgt_list])
+        # print('tgt_list:', tgt_list)
+        tgt_seq = " ".join([str(round(math.exp(i[0]) - 1)) for i in tgt_list])
 
         # RNN-based model
         # if self.model_name == 'rnn' or self.model_name == 'cnn':
@@ -136,7 +143,6 @@ class Predictor(object):
         #     tgt_tensor = out_list.squeeze()
         #     tgt_list = tgt_tensor.cpu().numpy().tolist()
         #     tgt_seq = " ".join([str(round(i)) for i in tgt_list])
-
 
         # CNN model
         # elif self.model_name == 'transformer':
