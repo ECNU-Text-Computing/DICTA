@@ -46,6 +46,8 @@ LOG_FORMAT = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
 logging.basicConfig(format=LOG_FORMAT, level=getattr(logging, opt.log_level.upper()))
 logging.info(opt)
 
+
+# hyperparameter setting
 train_path = "datasets/" + opt.data_path + "/train/data.txt"
 dev_path = "datasets/" + opt.data_path + "/dev/data.txt"
 test_path = "datasets/" + opt.data_path + "/test/data.txt"
