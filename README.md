@@ -9,6 +9,8 @@ DICTA: DynamIc Content-aware TrAnsformer
 * sentence_transformers
 * python 3.9
 * transformers
+* dill
+
 
 
 ## Usage
