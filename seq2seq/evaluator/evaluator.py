@@ -58,9 +58,11 @@ class Evaluator(object):
 
                 elif self.model_name == 'transformer':
                     # Transformer model
-                    decoder_outputs, cos_sim1, cos_sim2 = model(input_variables, content, if_draw=if_draw,
-                                                                use_sbert=self.use_sbert,
-                                                                use_sbert_seq=self.use_sbert_seq)
+                    decoder_outputs = model(input_variables, content, if_draw=if_draw, use_sbert=self.use_sbert,
+                                            use_sbert_seq=self.use_sbert_seq)
+                    # decoder_outputs, cos_sim1, cos_sim2 = model(input_variables, content, if_draw=if_draw,
+                    #                                             use_sbert=self.use_sbert,
+                    #                                             use_sbert_seq=self.use_sbert_seq)
 
                 elif self.model_name == 'cnn':
                     # Conv seq2seq model
@@ -74,14 +76,14 @@ class Evaluator(object):
                     target = target_variables[:, step]
                     loss.eval_batch(step_output.contiguous().view(target_variables.size(0), -1), target.unsqueeze(1))
 
-                if if_draw:
-                    cos_list1 = cos_sim1.tolist()
-                    cos_list2 = cos_sim2.tolist()
-                    with open('cos1.csv', 'a') as f1:
-                        for i in cos_list1:
-                            f1.write(str(i) + '\r\n')
-                    with open('cos2.csv', 'a') as f2:
-                        for j in cos_list2:
-                            f2.write(str(j) + '\r\n')
+                # if if_draw:
+                #     cos_list1 = cos_sim1.tolist()
+                #     cos_list2 = cos_sim2.tolist()
+                #     with open('cos1.csv', 'a') as f1:
+                #         for i in cos_list1:
+                #             f1.write(str(i) + '\r\n')
+                #     with open('cos2.csv', 'a') as f2:
+                #         for j in cos_list2:
+                #             f2.write(str(j) + '\r\n')
 
         return loss.get_loss()

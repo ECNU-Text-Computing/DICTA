@@ -64,14 +64,14 @@ class Transformer(nn.Module):
         encoder_outputs, content_embedding = self.encoder(src, content,
                                                           mask=src_mask,
                                                           src_key_padding_mask=src_key_padding_mask)
-        if use_sbert_seq:
-            cos_list1 = []
-            cos_list2 = []
-            for i in range(1, content_embedding.size(1)):
-                cos_list1.append(F.cosine_similarity(content_embedding[:, 0, :], content_embedding[:, i, :]))
-                cos_list2.append(F.cosine_similarity(content_embedding[:, i-1, :], content_embedding[:, i, :]))
-            cos_sim1 = torch.stack(cos_list1)
-            cos_sim2 = torch.stack(cos_list2)
+        # if use_sbert_seq:
+        #     cos_list1 = []
+        #     cos_list2 = []
+        #     for i in range(1, content_embedding.size(1)):
+        #         cos_list1.append(F.cosine_similarity(content_embedding[:, 0, :], content_embedding[:, i, :]))
+        #         cos_list2.append(F.cosine_similarity(content_embedding[:, i-1, :], content_embedding[:, i, :]))
+        #     cos_sim1 = torch.stack(cos_list1)
+        #     cos_sim2 = torch.stack(cos_list2)
 
         result = self.decoder(content_embedding=content_embedding,
                               memory=encoder_outputs,
@@ -81,4 +81,5 @@ class Transformer(nn.Module):
                               memory_mask=memory_mask,
                               tgt_key_padding_mask=tgt_key_padding_mask,
                               memory_key_padding_mask=memory_key_padding_mask)
-        return result, cos_sim1, cos_sim2
+        return result
+        # return result, cos_sim1, cos_sim2

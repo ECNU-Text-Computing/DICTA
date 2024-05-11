@@ -76,19 +76,21 @@ class SupervisedTrainer(object):
 
         elif self.model_name == 'transformer':
             # Transformer model
-            decoder_outputs, cos_sim1, cos_sim2 = model(input_variable, content, target_variable,
-                                                        self.use_sbert, self.use_sbert_seq, teacher_forcing_ratio)
-            if self.use_sbert_seq:
-                cos_list1 = cos_sim1.permute(1, 0).tolist()
-                cos_list2 = cos_sim2.permute(1, 0).tolist()
-                with open('figures/cos1.csv', 'a') as f1:
-                    for i in cos_list1:
-                        lst = [str(j) for j in i]
-                        f1.write(','.join(lst)+'\r\n')
-                with open('figures/cos2.csv', 'a') as f1:
-                    for m in cos_list2:
-                        lst = [str(n) for n in m]
-                        f1.write(','.join(lst) + '\r\n')
+            decoder_outputs = model(input_variable, content, target_variable, self.use_sbert, self.use_sbert_seq,
+                                    teacher_forcing_ratio)
+            # decoder_outputs, cos_sim1, cos_sim2 = model(input_variable, content, target_variable,
+            #                                             self.use_sbert, self.use_sbert_seq, teacher_forcing_ratio)
+            # if self.use_sbert_seq:
+            #     cos_list1 = cos_sim1.permute(1, 0).tolist()
+            #     cos_list2 = cos_sim2.permute(1, 0).tolist()
+            #     with open('figures/cos1.csv', 'a') as f1:
+            #         for i in cos_list1:
+            #             lst = [str(j) for j in i]
+            #             f1.write(','.join(lst)+'\r\n')
+            #     with open('figures/cos2.csv', 'a') as f1:
+            #         for m in cos_list2:
+            #             lst = [str(n) for n in m]
+            #             f1.write(','.join(lst) + '\r\n')
 
         elif self.model_name == 'cnn':
             # Conv seq2seq model

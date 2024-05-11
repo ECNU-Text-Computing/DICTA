@@ -3,11 +3,13 @@ import sys
 import argparse
 import logging
 
-
 import torch
 import torch.nn as nn
+from torch.optim.lr_scheduler import StepLR
 from sentence_transformers import SentenceTransformer
+from transformers import AutoTokenizer
 
+# import torchtext
 
 import seq2seq
 from seq2seq.trainer import SupervisedTrainer
@@ -16,6 +18,9 @@ from seq2seq.models import EncoderCNN, DecoderCNN, Seq2seqCNN
 from seq2seq.loss import Perplexity
 from seq2seq.optim import Optimizer
 from seq2seq.dataset import DataGenerator
+from seq2seq.evaluator import Predictor
+from seq2seq.evaluator import Evaluator
+from seq2seq.util.checkpoint import Checkpoint
 
 sys.path.insert(0, '.')
 sys.path.insert(0, '..')
@@ -151,9 +156,9 @@ seq2seq = t.train(seq2seq, train,
                   optimizer=optimizer, teacher_forcing_ratio=teacher_forcing_ratio)
 
 
-# predict
-predictor = Predictor(seq2seq, model_name, device)
-print("Test", predictor.predict(test, batch_size, model_name))
+# test for user input
+predictor = Predictor(seq2seq, model_name, DEVICE)
+# print("Test", predictor.predict(test, batch_size, model_name))
 
 while True:
     seq_str = raw_input("Type in a source sequence:")
