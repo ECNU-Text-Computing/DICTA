@@ -35,7 +35,7 @@ class Predictor(object):
         else:
             content = src_seq.pop()
         src_id_seq = torch.FloatTensor([[np.log(1+float(i)) for i in src_seq]]).view(1, -1)
-        print('input_list:', src_id_seq)
+        # print('input_list:', src_id_seq)
         src_id_seq = src_id_seq.to(self.device)
         # print("src_seq:{}, src_id_seq:{}, len(src_seq):{}".format(src_seq, src_id_seq, len(src_seq)))
 
