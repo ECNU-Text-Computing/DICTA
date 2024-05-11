@@ -2,7 +2,7 @@ import os
 import sys
 import argparse
 import logging
-os.environ['CUDA_VISIBLE_DEVICES'] = "3"
+
 
 import torch
 import torch.nn as nn
@@ -26,16 +26,16 @@ except NameError:
     raw_input = input  # Python 3
 
 
+os.environ['CUDA_VISIBLE_DEVICES'] = "3"
 DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--data_path', action='store', dest='data_path', default='po',
+parser.add_argument('--data_path', action='store', dest='data_path', default='pmc',
                     help='Path to train, dev and test data')
-parser.add_argument('--expt_dir', action='store', dest='expt_dir', default='./experiment/cos',
+parser.add_argument('--expt_dir', action='store', dest='expt_dir', default='./experiment',
                     help='Path to experiment directory. If load_checkpoint is True, then path to checkpoint directory '
                          'has to be provided')
-parser.add_argument('--log-level', dest='log_level',
-                    default='info',
+parser.add_argument('--log-level', dest='log_level', default='info',
                     help='Logging level.')
 parser.add_argument('--model', action='store', dest='model', default='transformer',
                     help='The name of the employed model.')
@@ -75,8 +75,8 @@ kernel_size = 3
 use_adamw = False
 bidirectional = False
 use_attention = True
-use_sbert = True
-use_sbert_seq = True
+use_sbert = False
+use_sbert_seq = False
 if not use_sbert:
     use_sbert_seq = False
 sbert_model = SentenceTransformer('all-MiniLM-L6-v2')
@@ -151,11 +151,11 @@ seq2seq = t.train(seq2seq, train,
                   optimizer=optimizer, teacher_forcing_ratio=teacher_forcing_ratio)
 
 
-# # predict
-# predictor = Predictor(seq2seq, model_name, device)
-# print("Test", predictor.predict(test, batch_size, model_name))
-#
-# while True:
-#     seq_str = raw_input("Type in a source sequence:")
-#     seq = seq_str.strip().split()
-#     print('The predicted sequence is:', predictor.predict1(seq))
+# predict
+predictor = Predictor(seq2seq, model_name, device)
+print("Test", predictor.predict(test, batch_size, model_name))
+
+while True:
+    seq_str = raw_input("Type in a source sequence:")
+    seq = seq_str.strip().split()
+    print('The predicted sequence is:', predictor.predict1(seq))
