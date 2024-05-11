@@ -80,7 +80,7 @@ kernel_size = 3
 use_adamw = False
 bidirectional = False
 use_attention = True
-use_sbert = True
+use_sbert = False
 use_sbert_seq = False
 if not use_sbert:
     use_sbert_seq = False
