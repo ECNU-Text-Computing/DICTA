@@ -30,7 +30,10 @@ class Predictor(object):
         # self.tgt_vocab = tgt_vocab
 
     def get_decoder_features(self, src_seq):
-        # src_id_seq = torch.LongTensor([self.src_vocab.stoi[tok] for tok in src_seq]).view(1, -1)
+        if src_seq[-1].isdigit():
+            content = "There is no content for this paper."
+        else:
+            content = src_seq.pop()
         src_id_seq = torch.FloatTensor([[np.log(1+float(i)) for i in src_seq]]).view(1, -1)
         print('input_list:', src_id_seq)
         src_id_seq = src_id_seq.to(self.device)
