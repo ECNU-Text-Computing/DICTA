@@ -31,7 +31,7 @@ except NameError:
     raw_input = input  # Python 3
 
 
-os.environ['CUDA_VISIBLE_DEVICES'] = "3"
+# os.environ['CUDA_VISIBLE_DEVICES'] = "3"
 DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 parser = argparse.ArgumentParser()
