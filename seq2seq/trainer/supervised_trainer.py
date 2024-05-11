@@ -68,8 +68,6 @@ class SupervisedTrainer(object):
         # Forward propagation
 
         self.optimizer.optimizer.zero_grad()
-        # print("train_batch  input_variable: {}, input_lengths: {}, target_variable: {}, input_size: {}".
-        #       format(input_variable[:5],input_lengths[:5], target_variable[:5], input_variable.size()))
 
         if self.model_name == 'rnn':
             # RNN-based seq2seq model
@@ -102,24 +100,11 @@ class SupervisedTrainer(object):
             decoder_outputs, other = model(input_variable, content, target_variable,
                                            self.use_sbert, self.use_sbert_seq, teacher_forcing_ratio)
 
-        # print(torch.stack(other['sequence'], dim=-1).detach().cpu().numpy())
-        # # print("previous decoder_outputs:", decoder_outputs)
         # Get loss
         loss.reset()
-        # print("input_variable:", input_variable[:5], input_variable.size())
-        # last_input = input_variable[:, -1]
-        # print("last_inpute:", last_input[:5], last_input.size())
         for step, step_output in enumerate(decoder_outputs):
             batch_size = target_variable.size(0)
-            # print("batch_size: {}, step_output: {}, target_variable: {}".format(
-            #     batch_size, step_output.contiguous().view(batch_size, -1)[:1],
-            #     target_variable[:, step + 1][:1].unsqueeze(1)))
-            # loss.eval_batch(step_output.contiguous().view(batch_size, -1), target_variable[:, step + 1])
             loss.eval_batch(step_output.contiguous().view(batch_size, -1), target_variable[:, step].unsqueeze(1))
-            # 两个loss加在一起，或者分别写
-            # if step == 0:
-            #    print(torch.softmax(step_output.contiguous().view(batch_size, -1), dim=-1))   # Backward propagation
-            #    print(target_variable[:, step + 1])        
         model.zero_grad()
         loss.backward()
         self.optimizer.step()
@@ -135,19 +120,8 @@ class SupervisedTrainer(object):
         epoch_log_loss_total = 0  # Reset every epoch
 
         batch_iterator = data
-        # batch_iterator = torchtext.legacy.data.BucketIterator(
-        #     dataset=data, batch_size=self.batch_size,
-        #     sort=False, sort_within_batch=True,
-        #     sort_key=lambda x: len(x.src),
-        #     device=device, repeat=False)
-        # print("batch_iterator:", batch_iterator
-
-        # steps_per_epoch = len(batch_iterator)
-        # total_steps = steps_per_epoch * n_epochs
         steps_per_epoch = batch_iterator.getlen() // batch_size
         total_steps = steps_per_epoch * n_epochs
-        # total_steps = steps_per_epoch
-        # count
 
         step = start_step
         step_elapsed = 0
@@ -155,9 +129,6 @@ class SupervisedTrainer(object):
             log.debug("Epoch: %d, Step: %d" % (epoch, step))
 
             batch_generator = batch_iterator.process
-            # consuming seen batches from previous training
-            # for _ in range((epoch - 1) * steps_per_epoch, step):
-            #     next(batch_generator)
 
             model.train(True)
             # for batch in batch_generator:
@@ -165,23 +136,13 @@ class SupervisedTrainer(object):
 
                 step += 1
                 step_elapsed += 1
-                # print("x:", x)
-                # print("y:", y)
-                # print("len:", length)
 
                 input_variables = torch.FloatTensor(x).to(self.device)
                 target_variables = torch.FloatTensor(y).to(self.device)
                 input_lengths = torch.LongTensor(length).to(self.device)
 
-                # input_variables, input_lengths = getattr(batch, seq2seq.src_field_name)
-                # target_variables = getattr(batch, seq2seq.tgt_field_name)
-                # print("input_variables:", input_variables.shape, input_variables[:5])
-                # print("input_lengths:", input_lengths[:5])
-                # print("target_variables:", target_variables.shape, target_variables[:5])
-
                 loss = self._train_batch(input_variables, abs, input_lengths.tolist(), target_variables, model,
                                          teacher_forcing_ratio)
-                # print("batch_loss:", loss)
 
                 # Record average loss
                 print_loss_total += loss
@@ -196,7 +157,7 @@ class SupervisedTrainer(object):
                         print_loss_avg)
                     log.info(log_msg)
 
-                # Checkpoint
+                # # Checkpoint
                 # if step % self.checkpoint_every == 0 or step == total_steps:
                 #     Checkpoint(model=model,
                 #                optimizer=self.optimizer,
@@ -205,14 +166,11 @@ class SupervisedTrainer(object):
                 #                output_vocab=data.fields[seq2seq.tgt_field_name].vocab).save(self.expt_dir)
 
             if step_elapsed == 0: continue
-            # print('step:', step)
 
             epoch_loss_avg = epoch_loss_total / min(steps_per_epoch, step - start_step)
             epoch_loss_total = 0
             log_msg = "\nFinished epoch %d: Train %s: %.4f" % \
                       (epoch, self.loss.name, epoch_loss_avg)
-
-            # self.optimizer.update(epoch_loss_avg, epoch)
 
             predictor = Predictor(model, self.model_name, self.device)
             if dev_data is not None:
@@ -228,30 +186,23 @@ class SupervisedTrainer(object):
                     torch.save(model, '{}/{}.ckpt'.format(self.expt_dir, self.model_name))
 
             if test_data is not None:
-                # test_loss = predictor.predict(test_data, batch_size)
                 test_loss = self.evaluator.evaluate(model, test_data, True)
                 log_msg += ", Test %s: %.4f" % (self.loss.name, test_loss)
 
             if epoch == n_epochs:
                 train_loss = self.evaluator.evaluate(model, data)
-                # train_loss = predictor.predict(data, batch_size)
                 log_msg += "\nTrain %s from Evaluator: %.4f" % (self.loss.name, train_loss)
 
             log.info(log_msg)
 
         best_model = torch.load('{}/{}.ckpt'.format(self.expt_dir, self.model_name))
-        # best_pre = Predictor(best_model, self.model_name, self.device)
-        # best_train_loss = self.evaluator.evaluate(best_model, data)
-        # best_train_loss = best_pre.predict(data, batch_size)
         best_train_loss = self.evaluator.evaluate(best_model, data)
         best_info = "Epoch %d, Train %s: %.4f" % (best_epoch, self.loss.name, best_train_loss)
         if dev_data is not None:
             best_dev_loss = self.evaluator.evaluate(best_model, dev_data)
-            # best_dev_loss = best_pre.predict(dev_data, batch_size)
             best_info += ", Dev %s: %.4f" % (self.loss.name, best_dev_loss)
         if test_data is not None:
             best_test_loss = self.evaluator.evaluate(model, test_data)
-            # best_test_loss = best_pre.predict(test_data, batch_size)
             best_info += ", Test %s: %.4f" % (self.loss.name, best_test_loss)
         print("--------------Best Model:--------------")
         print(best_info)

@@ -6,11 +6,8 @@ os.environ['CUDA_VISIBLE_DEVICES'] = "3"
 
 import torch
 import torch.nn as nn
-from torch.optim.lr_scheduler import StepLR
 from sentence_transformers import SentenceTransformer
-from transformers import AutoTokenizer
 
-# import torchtext
 
 import seq2seq
 from seq2seq.trainer import SupervisedTrainer
@@ -18,11 +15,7 @@ from seq2seq.models import EncoderRNN, DecoderRNN, Seq2seq, TransformerEncoder, 
 from seq2seq.models import EncoderCNN, DecoderCNN, Seq2seqCNN
 from seq2seq.loss import Perplexity
 from seq2seq.optim import Optimizer
-# from seq2seq.dataset import SourceField, TargetField
 from seq2seq.dataset import DataGenerator
-from seq2seq.evaluator import Predictor
-from seq2seq.evaluator import Evaluator
-from seq2seq.util.checkpoint import Checkpoint
 
 sys.path.insert(0, '.')
 sys.path.insert(0, '..')
@@ -31,10 +24,6 @@ try:
     raw_input  # Python 2
 except NameError:
     raw_input = input  # Python 3
-
-# Sample usage:
-#     # training
-#     python examples/sample.py --data_path $DATA_PATH --model $MODEL_NAME
 
 
 DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -56,24 +45,7 @@ opt = parser.parse_args()
 LOG_FORMAT = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
 logging.basicConfig(format=LOG_FORMAT, level=getattr(logging, opt.log_level.upper()))
 logging.info(opt)
-# 越简洁越好，以实现为目标
-# 实现之后再优化
 
-
-# Prepare dataset
-# src = SourceField()
-# tgt = TargetField()
-
-
-# def len_filter(example):
-#     return len(example.src) <= max_len and len(example.tgt) <= max_len
-
-
-# train = torchtext.legacy.data.TabularDataset(
-#     path=opt.train_path, format='tsv',
-#     fields=[('src', src), ('tgt', tgt)],
-#     filter_pred=len_filter
-# )
 train_path = "datasets/" + opt.data_path + "/train/data.txt"
 dev_path = "datasets/" + opt.data_path + "/dev/data.txt"
 test_path = "datasets/" + opt.data_path + "/test/data.txt"
@@ -83,65 +55,19 @@ train = DataGenerator(input_path=train_path, batch_size=batch_size, shuffle=Fals
 dev = DataGenerator(input_path=dev_path, batch_size=batch_size, shuffle=False)
 test = DataGenerator(input_path=test_path, batch_size=batch_size, shuffle=False)
 
-# print("train:", train)
-# dev = torchtext.legacy.data.TabularDataset(
-#     path=opt.dev_path, format='tsv',
-#     fields=[('src', src), ('tgt', tgt)],
-#     filter_pred=len_filter
-# )
-# counter = {str(k):200005-k for k in range(200000)}
-# counter['<unk>'] = 1
-# counter['<sos>'] = 1
-# counter['<eos>'] = 1
-# counter['<pad>'] = 1
-# src.vocab = torchtext.legacy.vocab.Vocab(counter)
-# tgt.vocab = torchtext.legacy.vocab.Vocab(counter)
-# print(src.vocab.stoi['<pad>'], src.vocab.stoi['<unk>'])
-#
-# src.build_vocab(train, max_size=50000)
-# # tgt.build_vocab(train, max_size=50000)
-# input_vocab = src.vocab
-# output_vocab = tgt.vocab
-# print(input_vocab)
-# print(type(input_vocab))
-
-# NOTE: If the source field name and the target field name
-# are different from 'src' and 'tgt' respectively, they have
-# to be set explicitly before any training or inference
-# seq2seq.src_field_name = 'src'
-# seq2seq.tgt_field_name = 'tgt'
-
-# Prepare loss
-# weight = torch.ones(len(tgt.vocab))
 vocab_size = 10000
-# inout加log
-# weight = torch.ones(vocab_size)
-# pad = tgt.vocab.stoi[tgt.pad_token]
 loss = Perplexity()
-
-# if torch.cuda.is_available():
-#     loss.cuda()
-# loss = loss.to(DEVICE)
 loss.tocuda(DEVICE)
-
 seq2seq = None
 optimizer = None
-# 试小模型（小版本的bert），再用小数据
 
-# for path in os.listdir('./')
-
-# config_dict = json.load('config.path')
-# Initialize model
-# input_size = config_dict['input_size']
 input_size = 128
 hidden_size = 128  # 16 → 512
 num_head = 2
 num_epochs = 30
 teacher_forcing_ratio = 0.5  # 0.5 → 1
 dropout_rate = 0.1  # 0.2 - 0.5
-learning_rate = 0.001  # 0.001 - 0.00001 adamw
-# 文本生成模型
-# 在推荐期刊上看sequential model（有公开代码的）
+learning_rate = 0.001  # 0.001 - 0.00001
 num_layers = 3  # 2 - 5
 kernel_size = 3
 use_adamw = False
@@ -160,6 +86,8 @@ rnn_cell = 'gru'
 pad_id = -1
 in_len = 4 if opt.data_path == 'pubmed' or opt.data_path == 'dblp' else 5
 out_len = 5
+
+# print hyperparameters
 print('------Hyper-parameters------')
 print('model_name: {}, dataset: {}, batch_size: {}, hidden_size: {}, learning_rate: {}, num_epochs: {}, num_layers: {}, '
       'dropout_rate: {}, teacher_forcing_ratio: {}'.format(model_name, opt.data_path, batch_size, hidden_size,
@@ -168,8 +96,6 @@ print('model_name: {}, dataset: {}, batch_size: {}, hidden_size: {}, learning_ra
 print(
     'input_size: {}, kernel_size: {}, num_head: {}, use_adamw: {}'.format(input_size, kernel_size, num_head, use_adamw))
 print('use_sbert = {}, use_sbert_seq = {}, in_len: {}, out_len: {}'.format(use_sbert, use_sbert_seq, in_len, out_len))
-# 调transformer
-# 看别的sequential model
 print('----------------------------')
 
 if model_name == 'rnn':
@@ -199,25 +125,16 @@ elif model_name == 'cnn':
     seq2seq = Seq2seqCNN(encoder, decoder, sbert_model, sbert_seq_model, out_len, DEVICE)
 
 
-# if torch.cuda.is_available():
-#     seq2seq.cuda()
 seq2seq = seq2seq.to(DEVICE)
 
-# for param in seq2seq.parameters():
-#    param.data.uniform_(-0.08, 0.08)
-# param.require_grad = True
-# print(param.device)
 
-# Optimizer and learning rate scheduler can be customized by
-# explicitly constructing the objects and pass to the trainer.
-#
+# Optimizer and learning rate scheduler can be customized by explicitly constructing the objects
+# and pass to the trainer.
 if use_adamw:
     optimizer = Optimizer(torch.optim.AdamW(seq2seq.parameters(), lr=learning_rate), max_grad_norm=5)
 else:
     optimizer = Optimizer(torch.optim.Adam(seq2seq.parameters(), lr=learning_rate), max_grad_norm=5)
-    # parameters是一个字典，
-    # 变成fixed
-    # sbert问下予捷
+
 # scheduler = StepLR(optimizer.optimizer, 1)
 # optimizer.set_scheduler(scheduler)
 
@@ -231,11 +148,10 @@ seq2seq = t.train(seq2seq, train,
                   num_epochs=num_epochs, dev_data=dev, test_data=test,
                   optimizer=optimizer, teacher_forcing_ratio=teacher_forcing_ratio)
 
+
+# # predict
 # predictor = Predictor(seq2seq, model_name, device)
 # print("Test", predictor.predict(test, batch_size, model_name))
-
-
-# evaluator = Evaluator(seq2seq, input_vocab) 
 #
 # while True:
 #     seq_str = raw_input("Type in a source sequence:")
