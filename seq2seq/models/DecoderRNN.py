@@ -1,0 +1,303 @@
+import random
+import math
+
+import numpy as np
+
+import torch
+import torch.nn as nn
+from torch.autograd import Variable
+import torch.nn.functional as F
+
+from .attention import Attention
+from .baseRNN import BaseRNN
+
+
+class DecoderRNN(BaseRNN):
+    r"""
+    Provides functionality for decoding in a seq2seq framework, with an option for attention.
+
+    Args:
+        vocab_size (int): size of the vocabulary
+        max_len (int): a maximum allowed length for the sequence to be processed
+        hidden_size (int): the number of features in the hidden state `h`
+        sos_id (int): index of the start of sentence symbol
+        eos_id (int): index of the end of sentence symbol
+        n_layers (int, optional): number of recurrent layers (default: 1)
+        rnn_cell (str, optional): type of RNN cell (default: gru)
+        bidirectional (bool, optional): if the encoder is bidirectional (default False)
+        input_dropout_p (float, optional): dropout probability for the input sequence (default: 0)
+        dropout_p (float, optional): dropout probability for the output sequence (default: 0)
+        use_attention(bool, optional): flag indication whether to use attention mechanism or not (default: false)
+
+    Attributes:
+        KEY_ATTN_SCORE (str): key used to indicate attention weights in `ret_dict`
+        KEY_LENGTH (str): key used to indicate a list representing lengths of output sequences in `ret_dict`
+        KEY_SEQUENCE (str): key used to indicate a list of sequences in `ret_dict`
+
+    Inputs: inputs, encoder_hidden, encoder_outputs, function, teacher_forcing_ratio
+        - **inputs** (batch, seq_len, input_size): list of sequences, whose length is the batch size and within which
+          each sequence is a list of token IDs.  It is used for teacher forcing when provided. (default `None`)
+        - **encoder_hidden** (num_layers * num_directions, batch_size, hidden_size): tensor containing the features in the
+          hidden state `h` of encoder. Used as the initial hidden state of the decoder. (default `None`)
+        - **encoder_outputs** (batch, seq_len, hidden_size): tensor with containing the outputs of the encoder.
+          Used for attention mechanism (default is `None`).
+        - **function** (torch.nn.Module): A function used to generate symbols from RNN hidden state
+          (default is `torch.nn.functional.log_softmax`).
+        - **teacher_forcing_ratio** (float): The probability that teacher forcing will be used. A random number is
+          drawn uniformly from 0-1 for every decoding token, and if the sample is smaller than the given value,
+          teacher forcing would be used (default is 0).
+
+    Outputs: decoder_outputs, decoder_hidden, ret_dict
+        - **decoder_outputs** (seq_len, batch, vocab_size): list of tensors with size (batch_size, vocab_size) containing
+          the outputs of the decoding function.
+        - **decoder_hidden** (num_layers * num_directions, batch, hidden_size): tensor containing the last hidden
+          state of the decoder.
+        - **ret_dict**: dictionary containing additional information as follows {*KEY_LENGTH* : list of integers
+          representing lengths of output sequences, *KEY_SEQUENCE* : list of sequences, where each sequence is a list of
+          predicted token IDs }.
+    """
+
+    KEY_ATTN_SCORE = 'attention_score'
+    KEY_LENGTH = 'length'
+    KEY_SEQUENCE = 'sequence'
+
+    def __init__(self, vocab_size, seq_len, hidden_size,
+                 sos_id, eos_id, n_layers=1, rnn_cell='gru', device='cpu', bidirectional=False,
+                 input_dropout_p=0, dropout_p=0, use_attention=False, use_sbert=False, use_sbert_seq=False):
+        super(DecoderRNN, self).__init__(vocab_size, seq_len, hidden_size,
+                                         input_dropout_p, dropout_p,
+                                         n_layers, rnn_cell)
+
+        self.bidirectional_encoder = bidirectional
+        self.directions = 2 if bidirectional else 1
+        self.fc_input = nn.Linear(1, hidden_size)
+        self.fc_sbert = nn.Linear(hidden_size + 384, hidden_size)
+        self.rnn = self.rnn_cell(hidden_size, hidden_size, n_layers, batch_first=True, dropout=dropout_p)
+        # self.rnn = self.rnn_cell(1, hidden_size, n_layers, batch_first=True, dropout=dropout_p)
+        self.norm = nn.LayerNorm(hidden_size)
+        # hidden_size2
+        self.mlp = nn.Linear(384, 1)
+
+        # self.output_size = vocab_size
+        self.output_size = 1
+        self.hidden_size2 = hidden_size // 2
+        self.seq_length = seq_len
+        self.use_attention = use_attention
+        self.use_sbert = use_sbert
+        self.use_sbert_seq = use_sbert_seq
+        self.eos_id = eos_id
+        self.sos_id = sos_id
+        self.device = device
+
+        self.init_input = None
+
+        # self.embedding = nn.Embedding(self.output_size, self.hidden_size)
+        if use_attention:
+            self.attention = Attention(self.hidden_size)
+        if use_sbert:
+            self.cat_size = hidden_size * 2 + 384 if use_attention else hidden_size + 384
+        else:
+            self.cat_size = hidden_size * 2 if use_attention else hidden_size
+
+        self.out = nn.Linear(self.cat_size, self.output_size)
+
+    def forward_step(self, input_var, hidden, encoder_outputs, content_embedding):
+        # input_var: [batch_size, tgt_seq_len, 1]
+        # hidden: [num_layers, batch_size, hidden_size]
+        # encoder_outputs: [batch_size, src_seq_len, hidden_size]
+        # content_embedding: [batch_size, seq_len, 384]
+
+        input_var = input_var.to(torch.float32)
+        # print("input_var: {}, input_var_size: {}".format(input_var[:5], input_var.size()))
+        input_var = self.fc_input(input_var)  # [batch_size, src_seq_len, hidden_size]
+        out_len = input_var.size(1)
+        if self.use_sbert_seq:
+            content_embedding = content_embedding[:, -out_len:, :]  # [batch_size, tgt_seq_len, 384]
+            input_var = torch.cat([input_var, content_embedding], dim=2)  # [batch_size, tgt_seq_len, hidden_size+384]
+            input_var = self.fc_sbert(input_var)  # [batch_size, tgt_seq_len, hidden_size]
+        # content_embedding = content_embedding[:, -out_len:, :]
+        output, hidden = self.rnn(input_var, hidden)
+        # output: [batch_size, tgt_seq_len, hidden_size]
+        output = self.norm(output)
+
+        # embedded = self.embedding(input_var)
+        # embedded = self.input_dropout(embedded)
+        # output, hidden = self.rnn(embedded, hidden)
+
+        attn = None
+        if self.use_attention:
+            if self.use_sbert:
+                # output, attn = self.attention(output, encoder_outputs, content_embedding)
+                att_output, attn = self.attention(output, encoder_outputs)
+                # att_output: [batch_size, tgt_seq_len, hidden_size]
+                # print('att_output:', att_output.size())
+                # print('output:', output.size())
+                # print('content_embedding:', content_embedding.size())
+                output = torch.cat((att_output, output, content_embedding), dim=2)
+                # [batch_size, tgt_seq_len, cat_size]
+            else:
+                att_output, attn = self.attention(output, encoder_outputs)
+                # att_output: [batch_size, tgt_seq_len, hidden_size]
+                output = torch.cat((att_output, output), dim=2)  # [batch_size, tgt_seq_len, cat_size]
+        else:
+            if self.use_sbert:
+                output = torch.cat([output, content_embedding], dim=2)  # [batch_size, tgt_seq_len, cat_size]
+        # output: [batch_size, seq_len, directions * hidden_size]
+
+        # print("output:", output[:5], output.size())
+
+        # predicted_softmax =
+        # function(self.out(output.contiguous().view(-1, self.hidden_size)), dim=1).view(batch_size, output_size, -1)
+        # print("output:", output.size())
+        # predicted_softmax = self.out(output.contiguous().view(-1, self.hidden_size)).view(batch_size, output_size, -1)
+
+        # hidden_out = self.out1(output)
+        # predicted = F.relu(self.out(hidden_out))
+        predicted = F.relu(self.out(output))  # [batch_size, tgt_seq_len, output_size]
+        # if function:
+        #     predicted_softmax = function(predicted_softmax, dim=-1)
+        # print("predicted:", predicted.size())
+        # return predicted_softmax, hidden, attn
+        return predicted, hidden, attn
+
+    def forward(self, content_embedding, inputs=None, encoder_hidden=None, encoder_outputs=None,
+                function=F.log_softmax, teacher_forcing_ratio=0):
+        ret_dict = dict()
+        if self.use_attention:
+            ret_dict[DecoderRNN.KEY_ATTN_SCORE] = list()
+
+        inputs, batch_size, tgt_len = self._validate_args(inputs, encoder_hidden, encoder_outputs,
+                                                          function, teacher_forcing_ratio)
+
+        inputs = inputs.unsqueeze(2)
+        # inputs = torch.stack([content_embedding for i in range(self.seq_length)], dim=1)
+        # inputs = self.mlp(inputs)
+        # print("inputs: {}, inputs_size: {}".format(inputs[:5], inputs.size()))
+        decoder_hidden = self._init_state(encoder_hidden)
+
+        use_teacher_forcing = True if random.random() < teacher_forcing_ratio else False
+        # print(use_teacher_forcing)
+
+        decoder_outputs = []
+        sequence_symbols = []
+        lengths = np.array([tgt_len] * batch_size)
+
+        def decode(step, step_output, step_attn):
+
+            # print("previous step_output:", step_output.size())
+
+            decoder_outputs.append(step_output)
+
+            if self.use_attention:
+                ret_dict[DecoderRNN.KEY_ATTN_SCORE].append(step_attn)
+            # symbols = decoder_outputs[-1].topk(1)[1]
+            # symbols = decoder_outputs[-1]
+            symbols = step_output
+            # print("symbols:", symbols)
+            sequence_symbols.append(symbols)
+
+            eos_batches = symbols.data.eq(self.eos_id)
+            if eos_batches.dim() > 0:
+                eos_batches = eos_batches.cpu().view(-1).numpy()
+                update_idx = ((lengths > step) & eos_batches) != 0
+                lengths[update_idx] = len(sequence_symbols)
+            return symbols
+
+        # Manual unrolling is used to support random teacher forcing.
+        # If teacher_forcing_ratio is True or False instead of a probability, the unrolling can be done in graph
+        if use_teacher_forcing:
+            # decoder_input = inputs[:, :-1]
+            decoder_input = inputs
+            if self.use_sbert_seq:
+                content_embedding = content_embedding
+            elif self.use_sbert:
+                content_embedding = torch.stack([content_embedding for i in range(self.seq_length)], dim=1)
+            decoder_output, decoder_hidden, attn = self.forward_step(decoder_input, decoder_hidden, encoder_outputs,
+                                                                     content_embedding)
+
+            for di in range(decoder_output.size(1)):
+                step_output = decoder_output[:, di, :]
+                if attn is not None:
+                    step_attn = attn[:, di, :]
+                else:
+                    step_attn = None
+                decode(di, step_output, step_attn)
+        else:
+            decoder_input = inputs[:, 0].unsqueeze(1)
+            if self.use_sbert:
+                content_embedding = content_embedding.unsqueeze(1)  # [batch_size, 1, 384]
+            # for di in range(max_length):
+            for di in range(tgt_len):
+                if self.use_sbert_seq:
+                    content = content_embedding[:, :, -tgt_len + di, :]  # [batch_size, 1, 384]
+                else:
+                    content = content_embedding  # None
+                decoder_output, decoder_hidden, step_attn = self.forward_step(decoder_input, decoder_hidden,
+                                                                              encoder_outputs, content)
+                step_output = decoder_output.squeeze(1)
+                symbols = decode(di, step_output, step_attn)
+                decoder_input = symbols.unsqueeze(1).to(torch.float32)
+
+        ret_dict[DecoderRNN.KEY_SEQUENCE] = sequence_symbols
+        ret_dict[DecoderRNN.KEY_LENGTH] = lengths.tolist()
+        # pre = inputs.size(0)
+        # if pre == 1:
+        #     print("inputs: {}, inputs_size: {}".format(inputs[:5], inputs.size()))
+        #     print("decoder_outputs: {}, decoder_outputs_size: {}".format(decoder_outputs[0].size(), len(decoder_outputs)))
+
+        return decoder_outputs, decoder_hidden, ret_dict
+
+    def _init_state(self, encoder_hidden):
+        """ Initialize the encoder hidden state. """
+        if encoder_hidden is None:
+            return None
+        if isinstance(encoder_hidden, tuple):
+            encoder_hidden = tuple([self._cat_directions(h) for h in encoder_hidden])
+        else:
+            encoder_hidden = self._cat_directions(encoder_hidden)
+        return encoder_hidden
+
+    def _cat_directions(self, h):
+        """ If the encoder is bidirectional, do the following transformation.
+            (#directions * #layers, #batch, hidden_size) -> (#layers, #batch, #directions * hidden_size)
+        """
+        if self.bidirectional_encoder:
+            h = torch.cat([h[0:h.size(0):2], h[1:h.size(0):2]], 2)
+        return h
+
+    def _validate_args(self, inputs, encoder_hidden, encoder_outputs, function, teacher_forcing_ratio):
+        if self.use_attention:
+            if encoder_outputs is None:
+                raise ValueError("Argument encoder_outputs cannot be None when attention is used.")
+
+        # inference batch size
+        if inputs is None and encoder_hidden is None:
+            batch_size = 1
+        else:
+            if inputs is not None:
+                # inputs = self.norm(inputs)
+                batch_size = inputs.size(0)
+            else:
+                if self.rnn_cell is nn.LSTM:
+                    batch_size = encoder_hidden[0].size(1)
+                elif self.rnn_cell is nn.RNN:
+                    batch_size = encoder_hidden.size(1)
+                elif self.rnn_cell is nn.GRU:
+                    batch_size = encoder_hidden.size(1)
+
+        # set default input and max decoding length
+        if inputs is None:
+            if teacher_forcing_ratio > 0:
+                raise ValueError("Teacher forcing has to be disabled (set 0) when no inputs is provided.")
+            inputs = torch.FloatTensor([self.sos_id] * batch_size).view(batch_size, 1)
+            # if torch.cuda.is_available():
+            #     inputs = inputs.cuda()
+            inputs = inputs.to(self.device)  # ?
+            if self.seq_length is None:
+                seq_length = 5
+            else:
+                seq_length = self.seq_length
+        else:
+            seq_length = inputs.size(1)  # minus the start of sequence symbol
+
+        return inputs, batch_size, seq_length

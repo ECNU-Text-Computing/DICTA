@@ -1,0 +1,15 @@
+2023-04-22 13:17:43,885 root         INFO     Namespace(data_path='pubmed', expt_dir='./experiment/nolog_uni_gru', log_level='info', model='cnn')
+2023-04-22 13:17:43,886 sentence_transformers.SentenceTransformer INFO     Load pretrained SentenceTransformer: all-MiniLM-L6-v2
+2023-04-22 13:17:44,245 sentence_transformers.SentenceTransformer INFO     Use pytorch device: cuda
+Traceback (most recent call last):
+  File "/home/scgu/seq2seq/main.py", line 155, in <module>
+    sbert_seq_model = sbert_seq_model.to(DEVICE)
+  File "/home/scgu/anaconda3/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1145, in to
+    return self._apply(convert)
+  File "/home/scgu/anaconda3/lib/python3.9/site-packages/torch/nn/modules/rnn.py", line 202, in _apply
+    self._init_flat_weights()
+  File "/home/scgu/anaconda3/lib/python3.9/site-packages/torch/nn/modules/rnn.py", line 139, in _init_flat_weights
+    self.flatten_parameters()
+  File "/home/scgu/anaconda3/lib/python3.9/site-packages/torch/nn/modules/rnn.py", line 190, in flatten_parameters
+    torch._cudnn_rnn_flatten_weight(
+RuntimeError: cuDNN error: CUDNN_STATUS_NOT_INITIALIZED

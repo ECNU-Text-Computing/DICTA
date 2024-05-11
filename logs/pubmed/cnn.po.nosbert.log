@@ -1,0 +1,37 @@
+2023-04-02 03:30:48,643 root         INFO     Namespace(data_path='datasets/po', expt_dir='./experiment', log_level='info', model='cnn')
+2023-04-02 03:30:48,643 sentence_transformers.SentenceTransformer INFO     Load pretrained SentenceTransformer: all-MiniLM-L6-v2
+2023-04-02 03:30:49,802 sentence_transformers.SentenceTransformer INFO     Use pytorch device: cuda
+2023-04-02 03:30:53,232 seq2seq.trainer.supervised_trainer INFO     Optimizer: Adam (
+Parameter Group 0
+    amsgrad: False
+    betas: (0.9, 0.999)
+    eps: 1e-08
+    lr: 0.001
+    weight_decay: 0
+), Scheduler: None
+2023-04-02 03:30:55,916 seq2seq.trainer.supervised_trainer INFO     Progress: 11%, Train RMSE Loss: 0.0946
+2023-04-02 03:30:57,143 seq2seq.trainer.supervised_trainer INFO     Progress: 17%, Train RMSE Loss: 0.0423
+2023-04-02 03:30:58,507 seq2seq.trainer.supervised_trainer INFO     Progress: 23%, Train RMSE Loss: 0.0403
+2023-04-02 03:30:59,905 seq2seq.trainer.supervised_trainer INFO     Progress: 29%, Train RMSE Loss: 0.0439
+2023-04-02 03:31:01,276 seq2seq.trainer.supervised_trainer INFO     Progress: 35%, Train RMSE Loss: 0.0331
+2023-04-02 03:31:02,605 seq2seq.trainer.supervised_trainer INFO     Progress: 41%, Train RMSE Loss: 0.0336
+2023-04-02 03:31:03,936 seq2seq.trainer.supervised_trainer INFO     Progress: 47%, Train RMSE Loss: 0.0328
+2023-04-02 03:31:05,357 seq2seq.trainer.supervised_trainer INFO     Progress: 53%, Train RMSE Loss: 0.0369
+2023-04-02 03:31:06,717 seq2seq.trainer.supervised_trainer INFO     Progress: 59%, Train RMSE Loss: 0.0301
+2023-04-02 03:31:07,989 seq2seq.trainer.supervised_trainer INFO     Progress: 65%, Train RMSE Loss: 0.0308
+2023-04-02 03:31:09,393 seq2seq.trainer.supervised_trainer INFO     Progress: 71%, Train RMSE Loss: 0.0334
+2023-04-02 03:31:10,732 seq2seq.trainer.supervised_trainer INFO     Progress: 77%, Train RMSE Loss: 0.0329
+2023-04-02 03:31:12,082 seq2seq.trainer.supervised_trainer INFO     Progress: 83%, Train RMSE Loss: 0.0318
+2023-04-02 03:31:13,404 seq2seq.trainer.supervised_trainer INFO     Progress: 89%, Train RMSE Loss: 0.0299
+2023-04-02 03:31:14,699 seq2seq.trainer.supervised_trainer INFO     Progress: 95%, Train RMSE Loss: 0.0291
+2023-04-02 03:31:34,044 seq2seq.trainer.supervised_trainer INFO     
+Finished epoch 1: Train RMSE Loss: 0.0358, Dev RMSE Loss: 0.3014, Test RMSE Loss: 0.3293
+Train RMSE Loss from Evaluator: 0.3405
+------Hyper-parameters------
+model_name: cnn, batch_size: 64, hidden_size: 32, learning_rate: 0.001, num_epochs: 1, num_layers: 3, dropout_rate: 0.1, teacher_forcing_ratio: 0.5
+input_size: 128, kernel_size: 3, num_head: 2, use_adamw: False
+in_len: 5, out_len: 5
+----------------------------
+--------------Best Model:--------------
+Epoch 1, Train RMSE Loss: 0.3405, Dev RMSE Loss: 0.3014, Test RMSE Loss: 0.3293
+---------------------------------------

@@ -1,0 +1,104 @@
+2023-05-14 00:13:57,745 root         INFO     Namespace(data_path='do', expt_dir='./experiment/no_att_abs', log_level='info', model='transformer')
+2023-05-14 00:13:57,745 sentence_transformers.SentenceTransformer INFO     Load pretrained SentenceTransformer: all-MiniLM-L6-v2
+2023-05-14 00:13:58,136 sentence_transformers.SentenceTransformer INFO     Use pytorch device: cuda
+2023-05-14 00:14:00,096 seq2seq.trainer.supervised_trainer INFO     Optimizer: Adam (
+Parameter Group 0
+    amsgrad: False
+    betas: (0.9, 0.999)
+    capturable: False
+    differentiable: False
+    eps: 1e-08
+    foreach: None
+    fused: None
+    lr: 0.001
+    maximize: False
+    weight_decay: 0
+), Scheduler: None
+2023-05-14 00:14:24,099 seq2seq.trainer.supervised_trainer INFO     Progress: 3%, Train RMSE Loss: 0.0761
+2023-05-14 00:14:35,669 seq2seq.trainer.supervised_trainer INFO     Progress: 4%, Train RMSE Loss: 0.0253
+2023-05-14 00:14:47,288 seq2seq.trainer.supervised_trainer INFO     Progress: 6%, Train RMSE Loss: 0.0240
+2023-05-14 00:14:59,186 seq2seq.trainer.supervised_trainer INFO     Progress: 8%, Train RMSE Loss: 0.0213
+2023-05-14 00:15:10,750 seq2seq.trainer.supervised_trainer INFO     Progress: 9%, Train RMSE Loss: 0.0197
+2023-05-14 00:15:34,698 seq2seq.trainer.supervised_trainer INFO     
+Finished epoch 1: Train RMSE Loss: 0.0276, Dev RMSE Loss: 0.0821, Test RMSE Loss: 0.0817
+2023-05-14 00:15:45,617 seq2seq.trainer.supervised_trainer INFO     Progress: 11%, Train RMSE Loss: 0.0199
+2023-05-14 00:15:57,217 seq2seq.trainer.supervised_trainer INFO     Progress: 13%, Train RMSE Loss: 0.0192
+2023-05-14 00:16:09,070 seq2seq.trainer.supervised_trainer INFO     Progress: 14%, Train RMSE Loss: 0.0186
+2023-05-14 00:16:20,637 seq2seq.trainer.supervised_trainer INFO     Progress: 16%, Train RMSE Loss: 0.0174
+2023-05-14 00:16:32,319 seq2seq.trainer.supervised_trainer INFO     Progress: 18%, Train RMSE Loss: 0.0171
+2023-05-14 00:16:43,847 seq2seq.trainer.supervised_trainer INFO     Progress: 19%, Train RMSE Loss: 0.0163
+2023-05-14 00:17:08,235 seq2seq.trainer.supervised_trainer INFO     
+Finished epoch 2: Train RMSE Loss: 0.0181, Dev RMSE Loss: 0.1503, Test RMSE Loss: 0.1500
+2023-05-14 00:17:18,178 seq2seq.trainer.supervised_trainer INFO     Progress: 21%, Train RMSE Loss: 0.0164
+2023-05-14 00:17:29,446 seq2seq.trainer.supervised_trainer INFO     Progress: 23%, Train RMSE Loss: 0.0156
+2023-05-14 00:17:40,685 seq2seq.trainer.supervised_trainer INFO     Progress: 24%, Train RMSE Loss: 0.0143
+2023-05-14 00:17:52,147 seq2seq.trainer.supervised_trainer INFO     Progress: 26%, Train RMSE Loss: 0.0142
+2023-05-14 00:18:03,382 seq2seq.trainer.supervised_trainer INFO     Progress: 27%, Train RMSE Loss: 0.0146
+2023-05-14 00:18:14,641 seq2seq.trainer.supervised_trainer INFO     Progress: 29%, Train RMSE Loss: 0.0132
+2023-05-14 00:18:40,252 seq2seq.trainer.supervised_trainer INFO     
+Finished epoch 3: Train RMSE Loss: 0.0145, Dev RMSE Loss: 0.1889, Test RMSE Loss: 0.1886
+2023-05-14 00:18:49,073 seq2seq.trainer.supervised_trainer INFO     Progress: 31%, Train RMSE Loss: 0.0131
+2023-05-14 00:19:00,582 seq2seq.trainer.supervised_trainer INFO     Progress: 32%, Train RMSE Loss: 0.0127
+2023-05-14 00:19:11,777 seq2seq.trainer.supervised_trainer INFO     Progress: 34%, Train RMSE Loss: 0.0132
+2023-05-14 00:19:23,024 seq2seq.trainer.supervised_trainer INFO     Progress: 36%, Train RMSE Loss: 0.0122
+2023-05-14 00:19:34,490 seq2seq.trainer.supervised_trainer INFO     Progress: 37%, Train RMSE Loss: 0.0118
+2023-05-14 00:19:45,711 seq2seq.trainer.supervised_trainer INFO     Progress: 39%, Train RMSE Loss: 0.0115
+2023-05-14 00:20:12,173 seq2seq.trainer.supervised_trainer INFO     
+Finished epoch 4: Train RMSE Loss: 0.0123, Dev RMSE Loss: 0.2349, Test RMSE Loss: 0.2345
+2023-05-14 00:20:20,156 seq2seq.trainer.supervised_trainer INFO     Progress: 41%, Train RMSE Loss: 0.0113
+2023-05-14 00:20:31,421 seq2seq.trainer.supervised_trainer INFO     Progress: 42%, Train RMSE Loss: 0.0114
+2023-05-14 00:20:42,870 seq2seq.trainer.supervised_trainer INFO     Progress: 44%, Train RMSE Loss: 0.0110
+2023-05-14 00:20:54,121 seq2seq.trainer.supervised_trainer INFO     Progress: 46%, Train RMSE Loss: 0.0108
+2023-05-14 00:21:05,364 seq2seq.trainer.supervised_trainer INFO     Progress: 47%, Train RMSE Loss: 0.0114
+2023-05-14 00:21:16,863 seq2seq.trainer.supervised_trainer INFO     Progress: 49%, Train RMSE Loss: 0.0112
+2023-05-14 00:21:44,169 seq2seq.trainer.supervised_trainer INFO     
+Finished epoch 5: Train RMSE Loss: 0.0112, Dev RMSE Loss: 0.2533, Test RMSE Loss: 0.2528
+2023-05-14 00:21:51,300 seq2seq.trainer.supervised_trainer INFO     Progress: 51%, Train RMSE Loss: 0.0112
+2023-05-14 00:22:02,913 seq2seq.trainer.supervised_trainer INFO     Progress: 52%, Train RMSE Loss: 0.0110
+2023-05-14 00:22:14,194 seq2seq.trainer.supervised_trainer INFO     Progress: 54%, Train RMSE Loss: 0.0101
+2023-05-14 00:22:25,452 seq2seq.trainer.supervised_trainer INFO     Progress: 55%, Train RMSE Loss: 0.0105
+2023-05-14 00:22:36,957 seq2seq.trainer.supervised_trainer INFO     Progress: 57%, Train RMSE Loss: 0.0099
+2023-05-14 00:22:48,205 seq2seq.trainer.supervised_trainer INFO     Progress: 59%, Train RMSE Loss: 0.0101
+2023-05-14 00:23:16,682 seq2seq.trainer.supervised_trainer INFO     
+Finished epoch 6: Train RMSE Loss: 0.0104, Dev RMSE Loss: 0.2811, Test RMSE Loss: 0.2807
+2023-05-14 00:23:22,789 seq2seq.trainer.supervised_trainer INFO     Progress: 60%, Train RMSE Loss: 0.0106
+2023-05-14 00:23:34,017 seq2seq.trainer.supervised_trainer INFO     Progress: 62%, Train RMSE Loss: 0.0102
+2023-05-14 00:23:45,514 seq2seq.trainer.supervised_trainer INFO     Progress: 64%, Train RMSE Loss: 0.0106
+2023-05-14 00:23:56,758 seq2seq.trainer.supervised_trainer INFO     Progress: 65%, Train RMSE Loss: 0.0096
+2023-05-14 00:24:07,955 seq2seq.trainer.supervised_trainer INFO     Progress: 67%, Train RMSE Loss: 0.0100
+2023-05-14 00:24:18,984 seq2seq.trainer.supervised_trainer INFO     Progress: 69%, Train RMSE Loss: 0.0097
+2023-05-14 00:24:46,596 seq2seq.trainer.supervised_trainer INFO     
+Finished epoch 7: Train RMSE Loss: 0.0101, Dev RMSE Loss: 0.2670, Test RMSE Loss: 0.2666
+2023-05-14 00:24:51,996 seq2seq.trainer.supervised_trainer INFO     Progress: 70%, Train RMSE Loss: 0.0099
+2023-05-14 00:25:03,138 seq2seq.trainer.supervised_trainer INFO     Progress: 72%, Train RMSE Loss: 0.0094
+2023-05-14 00:25:14,273 seq2seq.trainer.supervised_trainer INFO     Progress: 74%, Train RMSE Loss: 0.0100
+2023-05-14 00:25:25,679 seq2seq.trainer.supervised_trainer INFO     Progress: 75%, Train RMSE Loss: 0.0099
+2023-05-14 00:25:36,813 seq2seq.trainer.supervised_trainer INFO     Progress: 77%, Train RMSE Loss: 0.0090
+2023-05-14 00:25:47,951 seq2seq.trainer.supervised_trainer INFO     Progress: 78%, Train RMSE Loss: 0.0096
+2023-05-14 00:26:16,906 seq2seq.trainer.supervised_trainer INFO     
+Finished epoch 8: Train RMSE Loss: 0.0096, Dev RMSE Loss: 0.2881, Test RMSE Loss: 0.2876
+2023-05-14 00:26:21,144 seq2seq.trainer.supervised_trainer INFO     Progress: 80%, Train RMSE Loss: 0.0097
+2023-05-14 00:26:32,153 seq2seq.trainer.supervised_trainer INFO     Progress: 82%, Train RMSE Loss: 0.0098
+2023-05-14 00:26:43,460 seq2seq.trainer.supervised_trainer INFO     Progress: 83%, Train RMSE Loss: 0.0097
+2023-05-14 00:26:55,845 seq2seq.trainer.supervised_trainer INFO     Progress: 85%, Train RMSE Loss: 0.0094
+2023-05-14 00:27:08,994 seq2seq.trainer.supervised_trainer INFO     Progress: 87%, Train RMSE Loss: 0.0089
+2023-05-14 00:27:22,548 seq2seq.trainer.supervised_trainer INFO     Progress: 88%, Train RMSE Loss: 0.0087
+2023-05-14 00:27:54,119 seq2seq.trainer.supervised_trainer INFO     
+Finished epoch 9: Train RMSE Loss: 0.0092, Dev RMSE Loss: 0.2924, Test RMSE Loss: 0.2919
+2023-05-14 00:27:57,467 seq2seq.trainer.supervised_trainer INFO     Progress: 90%, Train RMSE Loss: 0.0089
+2023-05-14 00:28:08,481 seq2seq.trainer.supervised_trainer INFO     Progress: 92%, Train RMSE Loss: 0.0093
+2023-05-14 00:28:22,899 seq2seq.trainer.supervised_trainer INFO     Progress: 93%, Train RMSE Loss: 0.0094
+2023-05-14 00:28:34,768 seq2seq.trainer.supervised_trainer INFO     Progress: 95%, Train RMSE Loss: 0.0092
+2023-05-14 00:28:47,669 seq2seq.trainer.supervised_trainer INFO     Progress: 97%, Train RMSE Loss: 0.0086
+2023-05-14 00:29:00,615 seq2seq.trainer.supervised_trainer INFO     Progress: 98%, Train RMSE Loss: 0.0091
+2023-05-14 00:30:23,572 seq2seq.trainer.supervised_trainer INFO     
+Finished epoch 10: Train RMSE Loss: 0.0091, Dev RMSE Loss: 0.3101, Test RMSE Loss: 0.3098
+Train RMSE Loss from Evaluator: 0.3093
+------Hyper-parameters------
+model_name: transformer, batch_size: 64, hidden_size: 32, learning_rate: 0.001, num_epochs: 10, num_layers: 3, dropout_rate: 0.1, teacher_forcing_ratio: 1
+input_size: 128, kernel_size: 3, num_head: 2, use_adamw: False
+use_sbert = False, use_sbert_seq = False, in_len: 5, out_len: 5
+----------------------------
+--------------Best Model:--------------
+Epoch 1, Train RMSE Loss: 0.0821, Dev RMSE Loss: 0.0821, Test RMSE Loss: 0.3098
+---------------------------------------
