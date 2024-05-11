@@ -13,15 +13,7 @@ import sys
 
 import torch
 import numpy as np
-
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.feature_extraction.text import TfidfVectorizer
-from gensim.corpora.dictionary import Dictionary
-from gensim.models import LdaModel
-from joblib import load, dump
-import numpy as np
 from torch.nn.utils.rnn import pad_sequence
-from transformers import BertTokenizer
 
 sys.path.insert(0, '.')
 sys.path.insert(0, '..')
