@@ -156,11 +156,11 @@ seq2seq = t.train(seq2seq, train,
                   optimizer=optimizer, teacher_forcing_ratio=teacher_forcing_ratio)
 
 
-# # test from input_path
+# # test from test_path
 # predictor = Predictor(seq2seq, model_name, DEVICE)
 # print("Test", predictor.predict(test, batch_size, model_name))
 
-# test from user input
+# test from direct user input
 predictor = Predictor(seq2seq, model_name, DEVICE)
 while True:
     seq_str = raw_input("Type in a source sequence:")

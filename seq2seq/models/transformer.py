@@ -34,12 +34,13 @@ class Transformer(nn.Module):
         in_len = src.size(1)
         out_len = tgt.size(1) if tgt is not None else self.out_len
         seq_len = in_len + out_len
-        if content is not None:
+        if use_sbert:
             content = self.sbert_model.encode(content)  # [batch_size, embed_dim=384]
-            content = torch.from_numpy(content).to(self.device)  # [batch_size, 384]
-        if use_sbert_seq:
-            content = content.unsqueeze(1).repeat(1, seq_len, 1)  # [batch_size, seq_len, 384]
-            content, _ = self.sbert_seq_model(content)  # [batch_size, seq_len, 384]
+            content = torch.from_numpy(content).to(self.device)  # [batch_size, embed_dim=384]
+            if use_sbert_seq:
+                content = content.unsqueeze(-2).repeat(1, seq_len, 1)  # [batch_size, seq_len, 384]
+                # print(content.device, next(self.sbert_seq_model.parameters()).device)
+                content, _ = self.sbert_seq_model(content)  # [batch_size, seq_len, 384]
 
         src = src.unsqueeze(2).permute(1, 0, 2)
         if isinstance(tgt, list):
