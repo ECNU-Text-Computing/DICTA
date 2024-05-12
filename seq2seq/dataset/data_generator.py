@@ -43,9 +43,9 @@ class DataGenerator(object):
         return input_len, output_len
 
     def process(self):
-        # print("Load data from {}.".format(self.input_path))
+        # Print("Load data from {}.".format(self.input_path))
 
-        # read original data
+        # Read original data
         with open(self.input_path, 'r') as fp:
             input_data = fp.readlines()
 
@@ -53,16 +53,15 @@ class DataGenerator(object):
         if self.shuffle:
             random.shuffle(input_data)
 
-            # output the data to the deep learning model in batches.
-            # note that because "yield" is used instead of "return" below, this function is a generator.
-
+        # Output the data to the deep learning model in batches.
+        # Note that because "yield" is used instead of "return" below, this function is a generator.
         batch_size = self.batch_size
         for i in range(0, len(input_data), batch_size):
             # print(i)
             j = 0
             # Empty batch_input at the beginning of each loop.
             batch_input, batch_output, batch_len, batch_abs = [], [], [], []
-            # read the next batch of input data.
+            # Read the next batch of input data.
             for line in input_data[i: i + batch_size]:
                 j += 1
                 new_input, new_output = [], []
@@ -81,13 +80,13 @@ class DataGenerator(object):
                     new_input.append(np.log(1 + float(p)))
                 for q in output_list.strip().split():
                     new_output.append(np.log(1 + float(q)))
-                # append the converted citation count list to batch_input, and convert them into torch Tensors
+                # Append the converted citation count list to batch_input, and convert them into torch Tensors
                 batch_input.append(torch.FloatTensor(new_input))
                 batch_output.append(torch.FloatTensor(new_output))
                 batch_len.append(len_input)
                 batch_abs.append(abstract)
 
-            # perform padding on the uneven-length data.
+            # Perform padding on the uneven-length data.
             # [[1, 2], [1, 2, 3]] ==> [[1, 2, 0], [1, 2, 3]]
             batch_x = pad_sequence(batch_input, batch_first=True).detach().numpy()
             batch_y = pad_sequence(batch_output, batch_first=True).detach().numpy()
