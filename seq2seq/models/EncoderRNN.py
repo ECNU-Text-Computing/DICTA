@@ -48,16 +48,10 @@ class EncoderRNN(BaseRNN):
                                          input_dropout_p, dropout_p, n_layers, rnn_cell)
 
         self.variable_lengths = variable_lengths
-        # self.embedding = nn.Embedding(vocab_size, hidden_size)
-        # if embedding is not None:
-        #     self.embedding.weight = nn.Parameter(embedding)
-        # self.embedding.weight.requires_grad = update_embedding
-        # self.rnn = self.rnn_cell(hidden_size, hidden_size, n_layers,
-        # input_size = hidden_size // 2
         self.fc_input = nn.Linear(1, hidden_size)
         self.fc_sbert = nn.Linear(hidden_size + 384, hidden_size)
-        self.rnn = self.rnn_cell(hidden_size, hidden_size, n_layers,
-                                 batch_first=True, bidirectional=bidirectional, dropout=dropout_p)
+        self.rnn = self.rnn_cell(hidden_size, hidden_size, n_layers, batch_first=True,
+                                 bidirectional=bidirectional, dropout=dropout_p)
         # self.rnn = self.rnn_cell(1, hidden_size, n_layers,
         #                          batch_first=True, bidirectional=bidirectional, dropout=dropout_p)
         direction = 2 if bidirectional else 1
@@ -80,29 +74,18 @@ class EncoderRNN(BaseRNN):
             - **output** (batch, seq_len, hidden_size): variable containing the encoded features of the input sequence
             - **hidden** (num_layers * num_directions, batch, hidden_size): variable containing the features in the hidden state h
         """
-        # input_var = self.norm(input_var)
-        # seq_len = input_var.size(1)
-
         input_var = input_var.unsqueeze(2)
         input_var = self.fc_input(input_var)
-
-        # input_var = torch.stack([content for i in range(5)], dim=1)
-        # input_var = self.mlp(input_var)
 
         in_len = input_var.size(1)
         if self.use_sbert_seq:
             input_var = torch.cat([input_var, content[:, :in_len, :]], dim=2)  # [batch_size, seq_len, hidden_size+384]
             input_var = self.fc_sbert(input_var)  # [batch_size, seq_len, hidden_size]
 
-        # print("EncoderRNN  input_var:", input_var[:5], input_var.size())
         if self.variable_lengths:
             input_var = nn.utils.rnn.pack_padded_sequence(input_var, input_lengths, batch_first=True)
         output, hidden = self.rnn(input_var)
         if self.variable_lengths:
             output, _ = nn.utils.rnn.pad_packed_sequence(output, batch_first=True)
-        # output = self.norm(output)
 
-        # content: [batch_size]
-
-        # print("encoder:", output.size())
         return output, hidden, content

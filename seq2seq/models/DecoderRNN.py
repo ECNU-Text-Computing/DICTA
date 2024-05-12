@@ -75,7 +75,6 @@ class DecoderRNN(BaseRNN):
         self.rnn = self.rnn_cell(hidden_size, hidden_size, n_layers, batch_first=True, dropout=dropout_p)
         # self.rnn = self.rnn_cell(1, hidden_size, n_layers, batch_first=True, dropout=dropout_p)
         self.norm = nn.LayerNorm(hidden_size)
-        # hidden_size2
         self.mlp = nn.Linear(384, 1)
 
         # self.output_size = vocab_size
@@ -91,7 +90,6 @@ class DecoderRNN(BaseRNN):
 
         self.init_input = None
 
-        # self.embedding = nn.Embedding(self.output_size, self.hidden_size)
         if use_attention:
             self.attention = Attention(self.hidden_size)
         if use_sbert:
@@ -108,33 +106,25 @@ class DecoderRNN(BaseRNN):
         # content_embedding: [batch_size, seq_len, 384]
 
         input_var = input_var.to(torch.float32)
-        # print("input_var: {}, input_var_size: {}".format(input_var[:5], input_var.size()))
         input_var = self.fc_input(input_var)  # [batch_size, src_seq_len, hidden_size]
         out_len = input_var.size(1)
         if self.use_sbert_seq:
             content_embedding = content_embedding[:, -out_len:, :]  # [batch_size, tgt_seq_len, 384]
-            input_var = torch.cat([input_var, content_embedding], dim=2)  # [batch_size, tgt_seq_len, hidden_size+384]
+            input_var = torch.cat([input_var, content_embedding], dim=2)
+            # [batch_size, tgt_seq_len, hidden_size+384]
             input_var = self.fc_sbert(input_var)  # [batch_size, tgt_seq_len, hidden_size]
         # content_embedding = content_embedding[:, -out_len:, :]
         output, hidden = self.rnn(input_var, hidden)
         # output: [batch_size, tgt_seq_len, hidden_size]
         output = self.norm(output)
 
-        # embedded = self.embedding(input_var)
-        # embedded = self.input_dropout(embedded)
-        # output, hidden = self.rnn(embedded, hidden)
-
         attn = None
         if self.use_attention:
             if self.use_sbert:
-                # output, attn = self.attention(output, encoder_outputs, content_embedding)
                 att_output, attn = self.attention(output, encoder_outputs)
                 # att_output: [batch_size, tgt_seq_len, hidden_size]
-                # print('att_output:', att_output.size())
-                # print('output:', output.size())
-                # print('content_embedding:', content_embedding.size())
                 output = torch.cat((att_output, output, content_embedding), dim=2)
-                # [batch_size, tgt_seq_len, cat_size]
+                # output: [batch_size, tgt_seq_len, cat_size]
             else:
                 att_output, attn = self.attention(output, encoder_outputs)
                 # att_output: [batch_size, tgt_seq_len, hidden_size]
@@ -144,20 +134,8 @@ class DecoderRNN(BaseRNN):
                 output = torch.cat([output, content_embedding], dim=2)  # [batch_size, tgt_seq_len, cat_size]
         # output: [batch_size, seq_len, directions * hidden_size]
 
-        # print("output:", output[:5], output.size())
-
-        # predicted_softmax =
-        # function(self.out(output.contiguous().view(-1, self.hidden_size)), dim=1).view(batch_size, output_size, -1)
-        # print("output:", output.size())
-        # predicted_softmax = self.out(output.contiguous().view(-1, self.hidden_size)).view(batch_size, output_size, -1)
-
-        # hidden_out = self.out1(output)
-        # predicted = F.relu(self.out(hidden_out))
         predicted = F.relu(self.out(output))  # [batch_size, tgt_seq_len, output_size]
-        # if function:
-        #     predicted_softmax = function(predicted_softmax, dim=-1)
-        # print("predicted:", predicted.size())
-        # return predicted_softmax, hidden, attn
+
         return predicted, hidden, attn
 
     def forward(self, content_embedding, inputs=None, encoder_hidden=None, encoder_outputs=None,
@@ -170,30 +148,20 @@ class DecoderRNN(BaseRNN):
                                                           function, teacher_forcing_ratio)
 
         inputs = inputs.unsqueeze(2)
-        # inputs = torch.stack([content_embedding for i in range(self.seq_length)], dim=1)
-        # inputs = self.mlp(inputs)
-        # print("inputs: {}, inputs_size: {}".format(inputs[:5], inputs.size()))
         decoder_hidden = self._init_state(encoder_hidden)
 
         use_teacher_forcing = True if random.random() < teacher_forcing_ratio else False
-        # print(use_teacher_forcing)
 
         decoder_outputs = []
         sequence_symbols = []
         lengths = np.array([tgt_len] * batch_size)
 
         def decode(step, step_output, step_attn):
-
-            # print("previous step_output:", step_output.size())
-
             decoder_outputs.append(step_output)
 
             if self.use_attention:
                 ret_dict[DecoderRNN.KEY_ATTN_SCORE].append(step_attn)
-            # symbols = decoder_outputs[-1].topk(1)[1]
-            # symbols = decoder_outputs[-1]
             symbols = step_output
-            # print("symbols:", symbols)
             sequence_symbols.append(symbols)
 
             eos_batches = symbols.data.eq(self.eos_id)
@@ -206,7 +174,6 @@ class DecoderRNN(BaseRNN):
         # Manual unrolling is used to support random teacher forcing.
         # If teacher_forcing_ratio is True or False instead of a probability, the unrolling can be done in graph
         if use_teacher_forcing:
-            # decoder_input = inputs[:, :-1]
             decoder_input = inputs
             if self.use_sbert_seq:
                 content_embedding = content_embedding
@@ -226,7 +193,6 @@ class DecoderRNN(BaseRNN):
             decoder_input = inputs[:, 0].unsqueeze(1)
             if self.use_sbert:
                 content_embedding = content_embedding.unsqueeze(1)  # [batch_size, 1, 384]
-            # for di in range(max_length):
             for di in range(tgt_len):
                 if self.use_sbert_seq:
                     content = content_embedding[:, :, -tgt_len + di, :]  # [batch_size, 1, 384]
@@ -240,10 +206,6 @@ class DecoderRNN(BaseRNN):
 
         ret_dict[DecoderRNN.KEY_SEQUENCE] = sequence_symbols
         ret_dict[DecoderRNN.KEY_LENGTH] = lengths.tolist()
-        # pre = inputs.size(0)
-        # if pre == 1:
-        #     print("inputs: {}, inputs_size: {}".format(inputs[:5], inputs.size()))
-        #     print("decoder_outputs: {}, decoder_outputs_size: {}".format(decoder_outputs[0].size(), len(decoder_outputs)))
 
         return decoder_outputs, decoder_hidden, ret_dict
 
@@ -285,7 +247,7 @@ class DecoderRNN(BaseRNN):
                 elif self.rnn_cell is nn.GRU:
                     batch_size = encoder_hidden.size(1)
 
-        # set default input and max decoding length
+        # Set default input and max decoding length
         if inputs is None:
             if teacher_forcing_ratio > 0:
                 raise ValueError("Teacher forcing has to be disabled (set 0) when no inputs is provided.")
@@ -298,6 +260,6 @@ class DecoderRNN(BaseRNN):
             else:
                 seq_length = self.seq_length
         else:
-            seq_length = inputs.size(1)  # minus the start of sequence symbol
+            seq_length = inputs.size(1)  # Minus the start of sequence symbol
 
         return inputs, batch_size, seq_length
