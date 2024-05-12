@@ -9,7 +9,6 @@ from torch.optim.lr_scheduler import StepLR
 from sentence_transformers import SentenceTransformer
 from transformers import AutoTokenizer
 
-# import torchtext
 
 import seq2seq
 from seq2seq.trainer import SupervisedTrainer
@@ -96,7 +95,7 @@ out_len = 5
 
 # Print important hyperparameters
 print('------Hyper-parameters------')
-print('model_name: {}, dataset: {}, batch_size: {}, hidden_size: {}, learning_rate: {}, num_epochs: {}, num_layers: {}, '
+print('model_name: {}, dataset: {}, batch_size: {}, hidden_size: {}, learning_rate: {}, num_epochs: {}, num_layers: {},'
       'dropout_rate: {}, teacher_forcing_ratio: {}'.format(model_name, opt.data_path, batch_size, hidden_size,
                                                            learning_rate, num_epochs, num_layers,
                                                            dropout_rate, teacher_forcing_ratio))
