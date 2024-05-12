@@ -1,7 +1,6 @@
 from __future__ import print_function, division
 
 import torch
-# import torchtext
 
 import seq2seq
 from seq2seq.loss import MSELoss
@@ -44,8 +43,6 @@ class Evaluator(object):
 
         with torch.no_grad():
             for x, y, length, content in batch_iterator.process():
-                # input_variables, input_lengths  = batch_x, len(batch_x)
-                # target_variables = batch_y
                 input_variables = torch.FloatTensor(x).to(self.device)
                 target_variables = torch.FloatTensor(y).to(self.device)
                 input_lengths = torch.LongTensor(length).to(self.device)
@@ -68,8 +65,6 @@ class Evaluator(object):
                     # Conv seq2seq model
                     decoder_outputs, other = model(input_variables, content,
                                                    use_sbert=self.use_sbert, use_sbert_seq=self.use_sbert_seq)
-
-                # last_input = input_variables[:, -1]
 
                 # Evaluation
                 for step, step_output in enumerate(decoder_outputs):
