@@ -38,9 +38,9 @@ class Loss(object):
         self.criterion = criterion
         if not issubclass(type(self.criterion), nn.modules.loss._Loss):
             raise ValueError("Criterion has to be a subclass of torch.nn._Loss")
-        # accumulated loss
+        # Accumulated loss
         self.acc_loss = 0
-        # normalization term
+        # Normalization term
         self.norm_term = 0
 
     def reset(self):
@@ -93,7 +93,7 @@ class MSELoss(Loss):
     def get_loss(self):
         if isinstance(self.acc_loss, int):
             return 0
-        # total loss for all batches
+        # Total loss for all batches
         loss = self.acc_loss.data.item()
         # print(loss)
         # if self.reduction == 'mean':
@@ -104,20 +104,6 @@ class MSELoss(Loss):
     def eval_batch(self, outputs, target):
         self.acc_loss += self.criterion(outputs, target)
         self.norm_term += outputs.size(0)
-
-    # def eval_batch(self, last_input, outputs, target):
-    #     first_output = outputs[:, 1]
-    #     # print("first_output:", first_output[:5], first_output.size())
-    #     amplifier = False
-    #     for i in last_input.size(0):
-    #         if last_input[i] > first_output[i]:
-    #             amplifier = True
-    #             break
-    #     if amplifier:
-    #         self.acc_loss += self.criterion(outputs, target)
-    #     else:
-    #         self.acc_loss += self.criterion(outputs, target)
-    #     self.norm_term += 1
 
 
 class NLLLoss(Loss):
