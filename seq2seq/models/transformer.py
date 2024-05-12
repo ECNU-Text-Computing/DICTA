@@ -39,7 +39,6 @@ class Transformer(nn.Module):
             content = torch.from_numpy(content).to(self.device)  # [batch_size, embed_dim=384]
             if use_sbert_seq:
                 content = content.unsqueeze(-2).repeat(1, seq_len, 1)  # [batch_size, seq_len, 384]
-                # print(content.device, next(self.sbert_seq_model.parameters()).device)
                 content, _ = self.sbert_seq_model(content)  # [batch_size, seq_len, 384]
 
         src = src.unsqueeze(2).permute(1, 0, 2)

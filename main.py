@@ -158,7 +158,7 @@ seq2seq = t.train(seq2seq, train,
 
 # # test from test_path
 # predictor = Predictor(seq2seq, model_name, DEVICE)
-# print("Test", predictor.predict(test, batch_size, model_name))
+# print("Test", predictor.predict(test))
 
 # test from direct user input
 predictor = Predictor(seq2seq, model_name, DEVICE)
