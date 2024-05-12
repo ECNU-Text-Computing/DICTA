@@ -13,7 +13,7 @@ class TransformerDecoder(nn.Module):
     def __init__(self, input_size, num_head, dim_ff, dropout_p, num_layers, norm=None, pad_idx=-1,
                  seq_len=None, use_attention=None, use_sbert=True, use_sbert_seq=True, device='cpu'):
         super(TransformerDecoder, self).__init__()
-        # 克隆得到多个encoder layers 论文中默认为6
+        # Clone multiple encoder layers. The default value in the paper is 6.
         self.decoder_layer = DecoderLayer(input_size, num_head, dim_ff, dropout_p)
         self.layers = nn.ModuleList([copy.deepcopy(self.decoder_layer) for _ in range(num_layers)])
         self.num_layers = num_layers
@@ -41,16 +41,16 @@ class TransformerDecoder(nn.Module):
                      memory_key_padding_mask, content_embedding):
         # input_var: [src_seq_len, batch_size, 1]
         # content_embedding: [src_seq_len, batch_size, 384]
-        # print(input_var.size())
         input_var = self.fc_input(input_var)  # [seq_len, batch_size, input_size]
         input_var = self.pos_embedding(input_var)
         out_len = input_var.size(0)
         if self.use_sbert_seq:
             content_embedding = content_embedding[-out_len:, :, :]  # [trg sent len, batch_size, 384]
-            input_var = torch.cat([input_var, content_embedding], dim=2)  # [trg sent len, batch_size, input_size+384]
+            input_var = torch.cat([input_var, content_embedding], dim=2)
+            # input_var: [trg sent len, batch_size, input_size+384]
             input_var = self.fc_sbert(input_var)  # [trg sent len, batch_size, input_size]
-        # content_embedding = content_embedding[-out_len:, :, :]
-        for mod in self.layers:  # 这里的layers就是N层解码层堆叠起来的
+        # Stack N layers of the decoder.
+        for mod in self.layers:
             output, decoder_hidden = mod(memory=memory,
                                          tgt=input_var,
                                          tgt_mask=tgt_mask,
@@ -85,13 +85,15 @@ class TransformerDecoder(nn.Module):
     def forward(self, content_embedding, memory, tgt=None, teacher_forcing_ratio=0, tgt_mask=None, memory_mask=None,
                 tgt_key_padding_mask=None, memory_key_padding_mask=None):
         """
-        :param tgt: 解码部分的输入，形状为 [tgt_len,batch_size, input_dim]
-        :param memory: 编码部分最后一层的输出 [src_len,batch_size, input_dim]
-        :param tgt_mask: 注意力Mask输入，用于掩盖当前position之后的信息, [tgt_len, tgt_len]
-        :param memory_mask: 编码器-解码器交互时的注意力掩码，一般为None
-        :param tgt_key_padding_mask: 解码部分输入的padding情况，形状为 [batch_size, tgt_len]
-        :param memory_key_padding_mask: 编码部分输入的padding情况，形状为 [batch_size, src_len]
-        :return:
+        :param content_embedding: Text information encoded by the dynamic module.
+        :param tgt: Input for the decoding part, with shape [tgt_len,batch_size, input_dim]
+        :param memory: Output of the last layer of the encoding part, with shape [src_len,batch_size, input_dim]
+        :param tgt_mask: Attention mask for masking future positions in the input, with shape [tgt_len, tgt_len]
+        :param memory_mask: Attention mask for interaction between the encoder and decoder. Usually set to None.
+        :param tgt_key_padding_mask: Padding mask for the input of the decoding part, with shape [batch_size, tgt_len]
+        :param memory_key_padding_mask: Padding mask for the input of the encoding part,
+                                        with shape [batch_size, src_len]
+        :return: Output for the decoding part, with shape [tgt_len, batch_size, 1]
         """
         encoder_output = memory[-1, :, :]
         tgt, batch_size, tgt_len = self._validate_args(tgt, memory, encoder_output, teacher_forcing_ratio)
@@ -149,7 +151,7 @@ class TransformerDecoder(nn.Module):
             else:
                 batch_size = encoder_hidden.size(1)
 
-        # set default input and max decoding length
+        # Set default input and max decoding length
         if inputs is None:
             if teacher_forcing_ratio > 0:
                 raise ValueError("Teacher forcing has to be disabled (set 0) when no inputs is provided.")
@@ -168,11 +170,15 @@ class DecoderLayer(nn.Module):
     def __init__(self, d_model, nhead, dim_feedforward=128, dropout=0.1):
         super(DecoderLayer, self).__init__()
         """
-               :param d_model:         d_k = d_v = d_model/nhead = 64, 模型中向量的维度，论文默认值为 512
-               :param nhead:           多头注意力机制中多头的数量，论文默认为值 8
-               :param dim_feedforward: 全连接中向量的维度，论文默认值为 2048
-               :param dropout:         丢弃率，论文中的默认值为 0.1
-               """
+        :param d_model:         Dimensionality of the vectors in the model. 
+                                The values d_k, d_v, and d_model/nhead are set to 64. 
+                                The default value in the paper is 512.
+        :param nhead:           Number of heads in the multi-head attention mechanism. 
+                                The default value in the paper is 8.
+        :param dim_feedforward: Dimensionality of the vectors in the feedforward layer. 
+                                The default value in the paper is 2048.
+        :param dropout:         Dropout rate. The default value in the paper is 0.1. 
+        """
         self.self_attn = Mul_HeadSA(input_dim=d_model, num_heads=nhead, dropout=dropout)
         # 解码部分输入序列之间的多头注意力（也就是论文结构图中的Masked Multi-head attention)
         self.multihead_attn = Mul_HeadSA(input_dim=d_model, num_heads=nhead, dropout=dropout)

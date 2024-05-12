@@ -30,7 +30,7 @@ try:
 except NameError:
     raw_input = input  # Python 3
 
-
+# # Set the device
 # os.environ['CUDA_VISIBLE_DEVICES'] = "3"
 DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
@@ -52,7 +52,7 @@ logging.basicConfig(format=LOG_FORMAT, level=getattr(logging, opt.log_level.uppe
 logging.info(opt)
 
 
-# hyperparameter setting
+# Hyperparameter setting
 train_path = "datasets/" + opt.data_path + "/train/data.txt"
 dev_path = "datasets/" + opt.data_path + "/dev/data.txt"
 test_path = "datasets/" + opt.data_path + "/test/data.txt"
@@ -94,7 +94,7 @@ pad_id = -1
 in_len = 4 if opt.data_path == 'pubmed' or opt.data_path == 'dblp' else 5
 out_len = 5
 
-# print hyperparameters
+# Print important hyperparameters
 print('------Hyper-parameters------')
 print('model_name: {}, dataset: {}, batch_size: {}, hidden_size: {}, learning_rate: {}, num_epochs: {}, num_layers: {}, '
       'dropout_rate: {}, teacher_forcing_ratio: {}'.format(model_name, opt.data_path, batch_size, hidden_size,
@@ -145,7 +145,7 @@ else:
 # scheduler = StepLR(optimizer.optimizer, 1)
 # optimizer.set_scheduler(scheduler)
 
-# train
+# Training process
 t = SupervisedTrainer(pad_id=vocab_size + 3, loss=loss, batch_size=batch_size,
                       model_name=model_name, device=DEVICE,  use_sbert=use_sbert, use_sbert_seq=use_sbert_seq,
                       checkpoint_every=2000, print_every=500,
@@ -156,11 +156,11 @@ seq2seq = t.train(seq2seq, train,
                   optimizer=optimizer, teacher_forcing_ratio=teacher_forcing_ratio)
 
 
-# # test from test_path
+# # Test from test_path
 # predictor = Predictor(seq2seq, model_name, DEVICE)
 # print("Test", predictor.predict(test))
 
-# test from direct user input
+# Test from direct user input
 predictor = Predictor(seq2seq, model_name, DEVICE)
 while True:
     seq_str = raw_input("Type in a source sequence:")
