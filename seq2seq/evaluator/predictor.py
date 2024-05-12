@@ -25,19 +25,24 @@ class Predictor(object):
         self.model_name = model_name
 
     def get_decoder_features(self, src_seq):
-        if src_seq[-1].isdigit():
-            content = "There is no abstract for this paper."
-        else:
-            content = src_seq.pop()
+        num_seq = []
+        content = "There is no abstract for this paper."
+        new_content = ""
+        for i in src_seq:
+            if i.isdigit():
+                num_seq.append(i)
+                new_content = content
+            else:
+                new_content += i
 
-        src_id_seq = torch.FloatTensor([[np.log(1 + float(i)) for i in src_seq]]).view(1, -1)
+        src_id_seq = torch.FloatTensor([[np.log(1 + float(i)) for i in num_seq]]).view(1, -1)
         src_id_seq = src_id_seq.to(self.device)
 
         with torch.no_grad():
             if self.model_name == 'rnn':
                 out_list, _, other = self.model(src_id_seq, [len(src_seq)])
             elif self.model_name == 'transformer':
-                out_list = self.model(src_id_seq, content)
+                out_list = self.model(src_id_seq, new_content)
             elif self.model_name == 'cnn':
                 out_list, _ = self.model(src_id_seq)
 
