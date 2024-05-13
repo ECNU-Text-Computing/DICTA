@@ -155,7 +155,7 @@ seq2seq = t.train(seq2seq, train,
                   optimizer=optimizer, teacher_forcing_ratio=teacher_forcing_ratio)
 
 
-# # Test from test_path
+# # Test from specified path
 # predictor = Predictor(seq2seq, model_name, DEVICE)
 # print("Test", predictor.predict(test))
 
