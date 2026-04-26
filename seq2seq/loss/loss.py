@@ -155,28 +155,17 @@ class Perplexity(MSELoss):
         super(Perplexity, self).__init__()
 
     def eval_batch(self, outputs, target):
-        # loss = self.criterion(outputs, target)
-        # loss = math.sqrt(loss)
-        self.acc_loss += torch.sqrt(self.criterion(outputs, target))
-        # self.norm_term += batch_size
+        self.acc_loss += self.criterion(outputs, target) 
         self.norm_term += outputs.size(0)
-        # self.norm_term += 1
-        # print('outputs, target:', outputs, target)
-        # print('acc_loss:', self.acc_loss)
-        # self.norm_term += target.sum()
-        # 手动计算一条数据，看Loss的算法
-        # 加个logmale
-        # epoches调到50
-        # 输入log(1 + x)
 
     def get_loss(self):
-        mse = super(Perplexity, self).get_loss()
-        # mse /= self.norm_term.item()
-        mse /= self.norm_term
-        # if mse > Perplexity._MAX_EXP:
-        #     print("WARNING: Loss exceeded maximum value, capping to e^100")
-        #     return math.exp(Perplexity._MAX_EXP)
-        return mse
+        if isinstance(self.acc_loss, int):
+            return 0.0
+        sse = self.acc_loss.data.item() 
+        n = self.norm_term 
+        mse = sse / n
+        rmse = math.sqrt(mse)
+        return rmse
 
     @property
     def MAX_EXP(self):
